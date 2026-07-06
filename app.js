@@ -147,10 +147,11 @@ async function handleEstablecidoSubmit(e) {
 
 // Enviar novedad a la API
 async function enviarNovedad(datos, tipo) {
+    const submitBtn = event.target.querySelector('[type="submit"]');
+    const textOriginal = submitBtn.textContent;
+    
     try {
         // Mostrar que se está enviando
-        const submitBtn = event.target.querySelector('[type="submit"]');
-        const textOriginal = submitBtn.textContent;
         submitBtn.disabled = true;
         submitBtn.textContent = '⏳ Enviando...';
 
@@ -161,9 +162,6 @@ async function enviarNovedad(datos, tipo) {
             headers: API_HEADERS,
             body: JSON.stringify(datos)
         });
-
-        submitBtn.textContent = textOriginal;
-        submitBtn.disabled = false;
 
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -182,9 +180,10 @@ async function enviarNovedad(datos, tipo) {
 
     } catch (error) {
         console.error('Error al enviar novedad:', error);
+        showErrorModalContent(error.message);
+    } finally {
         submitBtn.textContent = textOriginal;
         submitBtn.disabled = false;
-        showErrorModalContent(error.message);
     }
 }
 
