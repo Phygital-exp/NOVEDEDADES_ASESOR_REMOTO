@@ -21,9 +21,8 @@ const hourInput2 = document.getElementById('hourInput2');
 const dateDisplay = document.getElementById('dateDisplay');
 const dateDisplay2 = document.getElementById('dateDisplay2');
 
-// Configuración del endpoint
-const API_ENDPOINT = 'http://localhost:3001/api/novedades';
-const API_TOKEN = '9b7661d9292aab2c339b95bf251063791c2a62ff';
+// Configuración del endpoint (desde config.js)
+const API_ENDPOINT = window.API_CONFIG?.apiUrl || 'http://localhost:3001/api/novedades';
 
 // Headers por defecto para todas las peticiones
 const API_HEADERS = {
