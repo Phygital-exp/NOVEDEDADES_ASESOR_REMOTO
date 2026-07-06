@@ -151,7 +151,10 @@ async function enviarNovedad(datos, tipo) {
         submitBtn.disabled = true;
         submitBtn.textContent = '⏳ Enviando...';
 
-        console.log('Enviando novedad:', datos);
+        console.log('[ENVIO] Iniciando envío de novedad...');
+        console.log('[ENVIO] Ambiente:', window.ENVIRONMENT);
+        console.log('[ENVIO] URL API:', API_ENDPOINT);
+        console.log('[ENVIO] Datos a enviar:', datos);
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
@@ -159,12 +162,15 @@ async function enviarNovedad(datos, tipo) {
             body: JSON.stringify(datos)
         });
 
+        console.log('[RESPUESTA] Status del servidor:', response.status);
+        console.log('[RESPUESTA] Status OK:', response.ok);
+
         if (!response.ok) {
             throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
-        console.log('Respuesta del servidor:', result);
+        console.log('[RESPUESTA] Datos recibidos:', result);
         
         // Mostrar modal de éxito
         showSuccessModal(tipo, datos);
@@ -175,7 +181,9 @@ async function enviarNovedad(datos, tipo) {
         }, 2000);
 
     } catch (error) {
-        console.error('Error al enviar novedad:', error);
+        console.error('[ERROR] Error al enviar novedad:', error.message);
+        console.error('[ERROR] Stack:', error.stack);
+        console.error('[ERROR] Tipo de error:', error.constructor.name);
         showErrorModalContent(error.message);
     } finally {
         submitBtn.textContent = textOriginal;

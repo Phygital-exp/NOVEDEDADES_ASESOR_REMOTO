@@ -14,6 +14,15 @@ const CONFIG = {
 
 // Detectar ambiente basándose en la URL actual
 const getEnvironment = () => {
+    // OVERRIDE MANUAL: Si tienes ?env=production en la URL, usa producción
+    const urlParams = new URLSearchParams(window.location.search);
+    const forceEnv = urlParams.get('env');
+    
+    if (forceEnv === 'production') {
+        console.log('[CONFIG] ⚠️ FORZANDO AMBIENTE A PRODUCTION (por parámetro URL)');
+        return 'production';
+    }
+    
     const hostname = window.location.hostname;
     
     // Si está en localhost o 127.0.0.1 = desarrollo
@@ -21,7 +30,7 @@ const getEnvironment = () => {
         return 'development';
     }
     
-    // En cualquier otro caso = producción
+    // En cualquier otro caso (GitHub Pages, dominio real) = producción
     return 'production';
 };
 
@@ -35,3 +44,8 @@ window.ENVIRONMENT = ENVIRONMENT;
 console.log(`[CONFIG] Ambiente: ${ENVIRONMENT}`);
 console.log(`[CONFIG] API URL: ${API_CONFIG.apiUrl}`);
 console.log(`[CONFIG] Debug: ${API_CONFIG.debug}`);
+console.log(`[CONFIG] Hostname: ${window.location.hostname}`);
+console.log(`[CONFIG] Puerto: ${window.location.port}`);
+
+// Tip para cambiar de ambiente
+console.log(`[CONFIG] 💡 Para forzar producción: añade ?env=production a la URL`);
