@@ -1,0 +1,23 @@
+{
+  "name": "novedad-asesor-remoto-proxy",
+  "version": "1.0.0",
+  "description": "Backend proxy para reportar novedades de caídas en el servicio asesor remoto",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "proxy",
+    "api",
+    "novedades"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.2"
+  }
+}
