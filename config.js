@@ -6,18 +6,22 @@ const CONFIG = {
         debug: true
     },
     production: {
-        // Reemplazar con la URL de Railway en producción
-        // Ejemplo: apiUrl: 'https://mi-proyecto.up.railway.app/api/novedades'
-        apiUrl: process.env.REACT_APP_API_URL || 'https://mi-proyecto.up.railway.app/api/novedades',
+        // URL real del backend en Railway
+        apiUrl: 'https://novededadesasesorremoto-production.up.railway.app/api/novedades',
         debug: false
     }
 };
 
-// Detectar ambiente
+// Detectar ambiente basándose en la URL actual
 const getEnvironment = () => {
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    const hostname = window.location.hostname;
+    
+    // Si está en localhost o 127.0.0.1 = desarrollo
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return 'development';
     }
+    
+    // En cualquier otro caso = producción
     return 'production';
 };
 
@@ -30,3 +34,4 @@ window.ENVIRONMENT = ENVIRONMENT;
 
 console.log(`[CONFIG] Ambiente: ${ENVIRONMENT}`);
 console.log(`[CONFIG] API URL: ${API_CONFIG.apiUrl}`);
+console.log(`[CONFIG] Debug: ${API_CONFIG.debug}`);
