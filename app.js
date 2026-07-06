@@ -22,15 +22,12 @@ const dateDisplay = document.getElementById('dateDisplay');
 const dateDisplay2 = document.getElementById('dateDisplay2');
 
 // Configuración del endpoint
-const API_ENDPOINT = 'https://botai.smartdataautomation.com/api_backend_ai/dinamic-db/report/119/novedades_rmt';
+const API_ENDPOINT = 'http://localhost:3001/api/novedades';
 const API_TOKEN = '9b7661d9292aab2c339b95bf251063791c2a62ff';
 
 // Headers por defecto para todas las peticiones
 const API_HEADERS = {
-    'Content-Type': 'application/json',
-    'Authorization': `Token ${API_TOKEN}`,
-    'Accept': '*/*',
-    'Connection': 'keep-alive'
+    'Content-Type': 'application/json'
 };
 
 // Inicialización
