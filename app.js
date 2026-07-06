@@ -21,8 +21,17 @@ const hourInput2 = document.getElementById('hourInput2');
 const dateDisplay = document.getElementById('dateDisplay');
 const dateDisplay2 = document.getElementById('dateDisplay2');
 
-// Configuración del endpoint (reemplazar cuando disponible)
-const API_ENDPOINT = 'https://api.example.com/novedades'; // TODO: Reemplazar con el endpoint real
+// Configuración del endpoint
+const API_ENDPOINT = 'https://botai.smartdataautomation.com/api_backend_ai/dinamic-db/report/119/novedades_rmt';
+const API_TOKEN = '9b7661d9292aab2c339b95bf251063791c2a62ff';
+
+// Headers por defecto para todas las peticiones
+const API_HEADERS = {
+    'Content-Type': 'application/json',
+    'Authorization': `Token ${API_TOKEN}`,
+    'Accept': '*/*',
+    'Connection': 'keep-alive'
+};
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
@@ -106,13 +115,13 @@ async function handleCaidaSubmit(e) {
     const hora = hourInput.value;
     const puntoVenta = document.getElementById('pointSelect').value;
     const fecha = new Date().toISOString().split('T')[0];
-    const tipo = 'CAIDA EN EL SERVICIO';
+    const estado = 'CAIDA';
 
     const datos = {
         fecha: fecha,
         hora: hora,
         punto_venta: puntoVenta,
-        tipo: tipo
+        estado: estado
     };
 
     await enviarNovedad(datos, 'Caída');
@@ -124,16 +133,16 @@ async function handleEstablecidoSubmit(e) {
     const hora = hourInput2.value;
     const puntoVenta = document.getElementById('pointSelect2').value;
     const fecha = new Date().toISOString().split('T')[0];
-    const tipo = 'SERVICIO ESTABLECIDO';
+    const estado = 'RESTABLECIMIENTO';
 
     const datos = {
         fecha: fecha,
         hora: hora,
         punto_venta: puntoVenta,
-        tipo: tipo
+        estado: estado
     };
 
-    await enviarNovedad(datos, 'Establecido');
+    await enviarNovedad(datos, 'Restablecimiento');
 }
 
 // Enviar novedad a la API
@@ -149,9 +158,7 @@ async function enviarNovedad(datos, tipo) {
 
         const response = await fetch(API_ENDPOINT, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: API_HEADERS,
             body: JSON.stringify(datos)
         });
 
@@ -159,10 +166,11 @@ async function enviarNovedad(datos, tipo) {
         submitBtn.disabled = false;
 
         if (!response.ok) {
-            throw new Error(`Error: ${response.status}`);
+            throw new Error(`Error ${response.status}: ${response.statusText}`);
         }
 
         const result = await response.json();
+        console.log('Respuesta del servidor:', result);
         
         // Mostrar modal de éxito
         showSuccessModal(tipo, datos);
@@ -174,6 +182,8 @@ async function enviarNovedad(datos, tipo) {
 
     } catch (error) {
         console.error('Error al enviar novedad:', error);
+        submitBtn.textContent = textOriginal;
+        submitBtn.disabled = false;
         showErrorModalContent(error.message);
     }
 }
@@ -189,7 +199,7 @@ function showSuccessModal(tipo, datos) {
         📅 Fecha: ${datos.fecha}<br>
         🕐 Hora: ${datos.hora}<br>
         📍 Punto: ${datos.punto_venta}<br>
-        🏷️ Tipo: ${datos.tipo}
+        🏷️ Estado: ${datos.estado}
     `;
     
     successModal.classList.add('active');
