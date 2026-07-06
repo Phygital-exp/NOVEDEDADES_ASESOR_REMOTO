@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novedades de Caídas en el Servicio Asesor Remoto</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Novedades de Caídas en el Servicio Asesor Remoto</h1>
+            <p class="subtitle">¿Qué acción deseas realizar?</p>
+        </header>
+
+        <!-- Pantalla inicial con botones -->
+        <div id="mainScreen" class="screen active">
+            <div class="button-group">
+                <button id="btnCaida" class="btn btn-primary">
+                    <span class="icon">⚠️</span>
+                    Caída del Servicio
+                </button>
+                <button id="btnEstablecido" class="btn btn-success">
+                    <span class="icon">✅</span>
+                    Servicio Establecido
+                </button>
+            </div>
+        </div>
+
+        <!-- Formulario de Caída del Servicio -->
+        <div id="caidaScreen" class="screen">
+            <div class="form-container">
+                <button class="btn-back" id="backFromCaida">← Volver</button>
+                <h2>Reportar Caída del Servicio</h2>
+                
+                <form id="caidaForm">
+                    <div class="form-group">
+                        <label for="hourInput">Hora de la Caída:</label>
+                        <input 
+                            type="time" 
+                            id="hourInput" 
+                            name="hora" 
+                            required
+                            placeholder="HH:MM"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pointSelect">Punto de Venta:</label>
+                        <select id="pointSelect" name="punto_venta" required>
+                            <option value="">-- Selecciona un punto de venta --</option>
+                            <option value="Llano Grande Palmira">Llano Grande Palmira</option>
+                            <option value="Chapinero Bogota">Chapinero Bogotá</option>
+                            <option value="Mayorca Medellin">Mayorca Medellín</option>
+                            <option value="Diver Plaza Bogota">Diver Plaza Bogotá</option>
+                            <option value="Exito Ciudad Tunal">Éxito Ciudad Tunal</option>
+                            <option value="Exito Simon Bolivar">Éxito Simón Bolívar</option>
+                        </select>
+                    </div>
+
+                    <div class="form-info">
+                        <p>📅 Fecha: <span id="dateDisplay"></span></p>
+                        <p>📍 Tipo: Caída en el Servicio</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        📤 Enviar Novedad
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Formulario de Servicio Establecido -->
+        <div id="establecidoScreen" class="screen">
+            <div class="form-container">
+                <button class="btn-back" id="backFromEstablecido">← Volver</button>
+                <h2>Registrar Servicio Establecido</h2>
+                
+                <form id="establecidoForm">
+                    <div class="form-group">
+                        <label for="hourInput2">Hora de Restablecimiento:</label>
+                        <input 
+                            type="time" 
+                            id="hourInput2" 
+                            name="hora" 
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pointSelect2">Punto de Venta:</label>
+                        <select id="pointSelect2" name="punto_venta" required>
+                            <option value="">-- Selecciona un punto de venta --</option>
+                            <option value="Llano Grande Palmira">Llano Grande Palmira</option>
+                            <option value="Chapinero Bogota">Chapinero Bogotá</option>
+                            <option value="Mayorca Medellin">Mayorca Medellín</option>
+                            <option value="Diver Plaza Bogota">Diver Plaza Bogotá</option>
+                            <option value="Exito Ciudad Tunal">Éxito Ciudad Tunal</option>
+                            <option value="Exito Simon Bolivar">Éxito Simón Bolívar</option>
+                        </select>
+                    </div>
+
+                    <div class="form-info">
+                        <p>📅 Fecha: <span id="dateDisplay2"></span></p>
+                        <p>📍 Tipo: Servicio Establecido</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-success btn-submit">
+                        📤 Enviar Novedad
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal de confirmación -->
+        <div id="successModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-icon">✅</div>
+                <h3 id="modalTitle">Novedad Enviada</h3>
+                <p id="modalMessage">La novedad se ha registrado correctamente</p>
+                <button class="btn btn-primary" id="closeModal">Aceptar</button>
+            </div>
+        </div>
+
+        <!-- Modal de error -->
+        <div id="errorModal" class="modal">
+            <div class="modal-content error">
+                <div class="modal-icon">❌</div>
+                <h3>Error</h3>
+                <p id="errorMessage">Ha ocurrido un error al enviar la novedad</p>
+                <button class="btn btn-primary" id="closeErrorModal">Reintentar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
