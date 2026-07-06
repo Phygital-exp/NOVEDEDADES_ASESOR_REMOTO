@@ -1,33 +1,23 @@
 const express = require('express');
 const cors = require('cors');
-const axios = require('axios');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 
-// Configuración de CORS
-const corsOptions = {
-    origin: '*',
-    methods: ['GET', 'POST', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: false
-};
-
-app.use(cors(corsOptions));
+// Middleware
+app.use(cors());
 app.use(express.json());
 
-// API Real - Credenciales
+// Configuración de API Real
 const EXTERNAL_API_URL = 'https://botai.smartdataautomation.com/api_backend_ai/dinamic-db/report/119/novedades_rmt';
 const API_TOKEN = process.env.API_TOKEN || '9b7661d9292aab2c339b95bf251063791c2a62ff';
 
-// Headers para la petición al API real
-const externalApiHeaders = {
-    'Content-Type': 'application/json',
-    'Authorization': `Token ${API_TOKEN}`,
-    'Accept': '*/*',
-    'Connection': 'keep-alive'
+const AUTH_HEADERS = {
+    Authorization: `Token ${API_TOKEN}`,
+    'Content-Type': 'application/json'
 };
 
 // Logger helper
@@ -73,10 +63,14 @@ app.post('/api/novedades', async (req, res) => {
         }
 
         // Reenviar al API real
-        const response = await axios.post(EXTERNAL_API_URL, datos, {
-            headers: externalApiHeaders,
-            timeout: 10000 // Timeout de 10 segundos
+        const response = await fetch(EXTERNAL_API_URL, {
+            method: 'POST',
+            headers: AUTH_HEADERS,
+            body: JSON.stringify(datos),
+            timeout: 10000
         });
+
+        const responseData = await response.json();
 
         log('INFO', `✅ Respuesta exitosa del API real (status: ${response.status})`);
 
@@ -84,21 +78,15 @@ app.post('/api/novedades', async (req, res) => {
         res.status(response.status).json({
             exito: true,
             mensaje: 'Novedad registrada correctamente',
-            datos: response.data
+            datos: responseData
         });
 
     } catch (error) {
         log('ERROR', `Error al enviar novedad: ${error.message}`);
-        
-        // Manejar errores específicos
-        const statusCode = error.response?.status || 500;
-        const mensaje = error.response?.data?.message || error.message || 'Error desconocido';
 
-        log('ERROR', `Status: ${statusCode}, Mensaje: ${mensaje}`);
-
-        res.status(statusCode).json({
+        res.status(500).json({
             exito: false,
-            error: mensaje,
+            error: error.message || 'Error desconocido',
             detalles: NODE_ENV === 'development' ? error.message : undefined
         });
     }
@@ -113,7 +101,7 @@ app.use((req, res) => {
 });
 
 // Iniciar servidor
-const server = app.listen(PORT, () => {
+app.listen(PORT, () => {
     log('INFO', `✅ Servidor iniciado correctamente`);
     log('INFO', `Ambiente: ${NODE_ENV}`);
     log('INFO', `Puerto: ${PORT}`);
@@ -123,20 +111,8 @@ const server = app.listen(PORT, () => {
 // Manejo de errores no capturados
 process.on('uncaughtException', (error) => {
     log('ERROR', `Excepción no capturada: ${error.message}`);
-    log('ERROR', error.stack);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
     log('ERROR', `Promesa rechazada no manejada: ${reason}`);
 });
-
-// Graceful shutdown
-process.on('SIGTERM', () => {
-    log('INFO', 'Recibida señal SIGTERM, cerrando servidor...');
-    server.close(() => {
-        log('INFO', 'Servidor cerrado correctamente');
-        process.exit(0);
-    });
-});
-
-module.exports = app;
