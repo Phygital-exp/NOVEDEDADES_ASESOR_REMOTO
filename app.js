@@ -74,14 +74,14 @@ function setupEventListeners() {
 
     // Modales
     closeModal.addEventListener('click', closeSuccessModal);
-    closeErrorModal.addEventListener('click', closeErrorModal);
+    closeErrorModal.addEventListener('click', closeErrorModalHandler);
 
     // Cerrar modal al hacer clic fuera
     successModal.addEventListener('click', (e) => {
         if (e.target === successModal) closeSuccessModal();
     });
     errorModal.addEventListener('click', (e) => {
-        if (e.target === errorModal) closeErrorModal();
+        if (e.target === errorModal) closeErrorModalHandler();
     });
 }
 
@@ -216,7 +216,7 @@ function showErrorModalContent(message) {
     errorModal.classList.add('active');
 }
 
-function closeErrorModal() {
+function closeErrorModalHandler() {
     errorModal.classList.remove('active');
 }
 
