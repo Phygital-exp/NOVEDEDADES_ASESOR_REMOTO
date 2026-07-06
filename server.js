@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // Configuración de CORS
 const corsOptions = {
@@ -29,20 +30,28 @@ const externalApiHeaders = {
     'Connection': 'keep-alive'
 };
 
+// Logger helper
+const log = (type, message) => {
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [${type}] ${message}`);
+};
+
 // Ruta de prueba
 app.get('/', (req, res) => {
     res.json({
         mensaje: 'Proxy de Novedades Asesor Remoto',
         estado: 'operativo',
-        version: '1.0.0'
+        version: '1.0.0',
+        ambiente: NODE_ENV
     });
 });
 
-// Ruta de salud
+// Ruta de salud (para Railway health checks)
 app.get('/health', (req, res) => {
     res.status(200).json({
         estado: 'ok',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
     });
 });
 
@@ -51,8 +60,17 @@ app.post('/api/novedades', async (req, res) => {
     try {
         const datos = req.body;
 
-        console.log('[INFO] Nueva solicitud recibida:', datos);
-        console.log('[INFO] Reenviando al API real...');
+        log('INFO', `Nueva solicitud recibida desde ${req.ip}`);
+        log('INFO', `Datos: ${JSON.stringify(datos)}`);
+        log('INFO', 'Reenviando al API real...');
+
+        // Validar datos básicos
+        if (!datos.fecha || !datos.hora || !datos.punto_venta || !datos.estado) {
+            return res.status(400).json({
+                exito: false,
+                error: 'Campos requeridos faltantes: fecha, hora, punto_venta, estado'
+            });
+        }
 
         // Reenviar al API real
         const response = await axios.post(EXTERNAL_API_URL, datos, {
@@ -60,7 +78,7 @@ app.post('/api/novedades', async (req, res) => {
             timeout: 10000 // Timeout de 10 segundos
         });
 
-        console.log('[INFO] Respuesta del API real:', response.status);
+        log('INFO', `✅ Respuesta exitosa del API real (status: ${response.status})`);
 
         // Retornar la respuesta al frontend
         res.status(response.status).json({
@@ -70,16 +88,18 @@ app.post('/api/novedades', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('[ERROR] Error al enviar novedad:', error.message);
+        log('ERROR', `Error al enviar novedad: ${error.message}`);
         
         // Manejar errores específicos
         const statusCode = error.response?.status || 500;
         const mensaje = error.response?.data?.message || error.message || 'Error desconocido';
 
+        log('ERROR', `Status: ${statusCode}, Mensaje: ${mensaje}`);
+
         res.status(statusCode).json({
             exito: false,
             error: mensaje,
-            detalles: process.env.NODE_ENV === 'development' ? error.message : undefined
+            detalles: NODE_ENV === 'development' ? error.message : undefined
         });
     }
 });
@@ -93,22 +113,30 @@ app.use((req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║   Proxy de Novedades Asesor Remoto                        ║
-║   Servidor escuchando en puerto ${PORT}                        ║
-║   API Real: ${EXTERNAL_API_URL}
-║   ${new Date().toLocaleString('es-ES')}
-╚═══════════════════════════════════════════════════════════╝
-    `);
+const server = app.listen(PORT, () => {
+    log('INFO', `✅ Servidor iniciado correctamente`);
+    log('INFO', `Ambiente: ${NODE_ENV}`);
+    log('INFO', `Puerto: ${PORT}`);
+    log('INFO', `API Real: ${EXTERNAL_API_URL}`);
 });
 
 // Manejo de errores no capturados
 process.on('uncaughtException', (error) => {
-    console.error('[ERROR CRÍTICO] Excepción no capturada:', error);
+    log('ERROR', `Excepción no capturada: ${error.message}`);
+    log('ERROR', error.stack);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('[ERROR CRÍTICO] Promesa rechazada no manejada:', reason);
+    log('ERROR', `Promesa rechazada no manejada: ${reason}`);
 });
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    log('INFO', 'Recibida señal SIGTERM, cerrando servidor...');
+    server.close(() => {
+        log('INFO', 'Servidor cerrado correctamente');
+        process.exit(0);
+    });
+});
+
+module.exports = app;
