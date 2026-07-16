@@ -107,17 +107,7 @@ async function fetchJson(url) {
 }
 
 async function getUsuarioPorCedula(cedula) {
-    try {
-        const json = await fetchJson(`${USUARIOS_URL}?CEDULA=${encodeURIComponent(cedula)}`);
-        const lista = extractArray(json);
-        const encontrado = lista.find((u) => norm(u.CEDULA) === norm(cedula));
-        if (encontrado) return encontrado;
-        // Si el filtro no devolvió nada, confirmamos contra la tabla completa antes de decir "no existe"
-    } catch (error) {
-        log('WARN', `Falló consulta filtrada de usuarios (status ${error.status}): ${String(error.body || '').slice(0, 200)}. Reintentando sin filtro…`);
-    }
-
-    const json = await fetchJson(USUARIOS_URL).catch((error) => {
+    const json = await fetchJson(`${USUARIOS_URL}?CEDULA=${encodeURIComponent(cedula)}`).catch((error) => {
         log('ERROR', `Respuesta cruda de usuarios (status ${error.status}): ${String(error.body || '').slice(0, 500)}`);
         throw new Error(`Error ${error.status} consultando usuarios`);
     });
@@ -126,14 +116,7 @@ async function getUsuarioPorCedula(cedula) {
 }
 
 async function getNovedadesPorCedula(cedula) {
-    try {
-        const json = await fetchJson(`${NOVEDADES_URL}?CEDULA=${encodeURIComponent(cedula)}`);
-        return extractArray(json).filter((n) => norm(n.CEDULA) === norm(cedula));
-    } catch (error) {
-        log('WARN', `Falló consulta filtrada de novedades (status ${error.status}): ${String(error.body || '').slice(0, 200)}. Reintentando sin filtro…`);
-    }
-
-    const json = await fetchJson(NOVEDADES_URL).catch((error) => {
+    const json = await fetchJson(`${NOVEDADES_URL}?CEDULA=${encodeURIComponent(cedula)}`).catch((error) => {
         log('ERROR', `Respuesta cruda de novedades (status ${error.status}): ${String(error.body || '').slice(0, 500)}`);
         throw new Error(`Error ${error.status} consultando novedades`);
     });
