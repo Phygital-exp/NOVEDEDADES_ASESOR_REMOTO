@@ -7,107 +7,135 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="console-bar">
+        <span class="dot" id="consoleDot"></span>
+        <span>RED DE PUNTOS DE VENTA</span>
+        <span class="sep">·</span>
+        <span id="consoleClock">--:--</span>
+    </div>
+
     <div class="container">
-        <header>
+        <header class="app-header">
             <h1>Novedades de Caídas en el Servicio Asesor Remoto</h1>
-            <p class="subtitle">¿Qué acción deseas realizar?</p>
+            <p class="subtitle">Reporta caídas y restablecimientos de tus puntos de venta.</p>
         </header>
 
-        <!-- Pantalla inicial con botones -->
-        <div id="mainScreen" class="screen active">
-            <div class="button-group">
-                <button id="btnCaida" class="btn btn-primary">
-                    <span class="icon">⚠️</span>
-                    Caída del Servicio
-                </button>
-                <button id="btnEstablecido" class="btn btn-success">
-                    <span class="icon">✅</span>
-                    Servicio Establecido
-                </button>
+        <!-- Sesión activa (se muestra solo si hay usuario logueado) -->
+        <div class="session-card" id="sessionCard" style="display:none;">
+            <div class="session-info">
+                <div class="name" id="sessionName">—</div>
+                <div class="meta" id="sessionMeta">—</div>
             </div>
+            <button class="btn btn-ghost" id="btnLogout">Salir</button>
         </div>
 
-        <!-- Formulario de Caída del Servicio -->
-        <div id="caidaScreen" class="screen">
-            <div class="form-container">
-                <button class="btn-back" id="backFromCaida">← Volver</button>
-                <h2>Reportar Caída del Servicio</h2>
-                
-                <form id="caidaForm">
-                    <div class="form-group">
-                        <label for="hourInput">Hora de la Caída:</label>
-                        <input 
-                            type="time" 
-                            id="hourInput" 
-                            name="hora" 
-                            required
-                            placeholder="HH:MM"
-                        >
+        <!-- ============ LOGIN ============ -->
+        <div id="loginScreen" class="screen active">
+            <div class="card login-card">
+                <h2>Ingresa tu cédula</h2>
+                <p class="hint">Validamos tu cédula contra la base de usuarios registrados.</p>
+
+                <form id="loginForm">
+                    <div class="field">
+                        <label for="cedulaInput">Cédula</label>
+                        <input type="text" inputmode="numeric" id="cedulaInput" name="cedula" placeholder="Ej: 1726492125" required autocomplete="off">
                     </div>
 
-                    <div class="form-group">
-                        <label for="pointSelect">Punto de Venta:</label>
-                        <select id="pointSelect" name="punto_venta" required>
-                            <option value="">-- Selecciona un punto de venta --</option>
-                            <option value="Llano Grande Palmira">Llano Grande Palmira</option>
-                            <option value="Chapinero Bogota">Chapinero Bogotá</option>
-                            <option value="Mayorca Medellin">Mayorca Medellín</option>
-                            <option value="Diver Plaza Bogota">Diver Plaza Bogotá</option>
-                            <option value="Exito Ciudad Tunal">Éxito Ciudad Tunal</option>
-                            <option value="Exito Simon Bolivar">Éxito Simón Bolívar</option>
-                        </select>
-                    </div>
+                    <div class="field-error" id="loginError"></div>
 
-                    <div class="form-info">
-                        <p>📅 Fecha: <span id="dateDisplay"></span></p>
-                        <p>📍 Estado: Caída en el Servicio</p>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary btn-submit">
-                        📤 Enviar Novedad
-                    </button>
+                    <button type="submit" class="btn btn-navy" id="loginSubmitBtn">Ingresar</button>
                 </form>
             </div>
         </div>
 
-        <!-- Formulario de Servicio Establecido -->
-        <div id="establecidoScreen" class="screen">
-            <div class="form-container">
-                <button class="btn-back" id="backFromEstablecido">← Volver</button>
-                <h2>Registrar Servicio Establecido</h2>
-                
-                <form id="establecidoForm">
-                    <div class="form-group">
-                        <label for="hourInput2">Hora de Restablecimiento:</label>
-                        <input 
-                            type="time" 
-                            id="hourInput2" 
-                            name="hora" 
-                            required
-                        >
+        <!-- ============ MENÚ PRINCIPAL ============ -->
+        <div id="mainScreen" class="screen">
+            <div class="button-group">
+                <button id="btnCaida" class="btn btn-amber">
+                    <span class="icon">⚠️</span>
+                    Reportar Caída del Servicio
+                </button>
+                <button id="btnEstablecido" class="btn btn-teal">
+                    <span class="icon">✅</span>
+                    Marcar Restablecimiento
+                </button>
+            </div>
+        </div>
+
+        <!-- ============ REPORTAR CAÍDA (multi-select) ============ -->
+        <div id="caidaScreen" class="screen">
+            <div class="card">
+                <div class="screen-head">
+                    <button class="btn-back" id="backFromCaida">← Volver</button>
+                    <h2>Reportar Caída del Servicio</h2>
+                </div>
+
+                <form id="caidaForm">
+                    <div class="field">
+                        <label>Puntos de venta afectados</label>
+                        <div class="pdv-list" id="pdvListCaida">
+                            <div class="loading-inline">Cargando puntos de venta…</div>
+                        </div>
+                        <div class="selected-counter"><strong id="caidaSelCount">0</strong> punto(s) seleccionado(s)</div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="pointSelect2">Punto de Venta:</label>
-                        <select id="pointSelect2" name="punto_venta" required>
-                            <option value="">-- Selecciona un punto de venta --</option>
-                            <option value="Llano Grande Palmira">Llano Grande Palmira</option>
-                            <option value="Chapinero Bogota">Chapinero Bogotá</option>
-                            <option value="Mayorca Medellin">Mayorca Medellín</option>
-                            <option value="Diver Plaza Bogota">Diver Plaza Bogotá</option>
-                            <option value="Exito Ciudad Tunal">Éxito Ciudad Tunal</option>
-                            <option value="Exito Simon Bolivar">Éxito Simón Bolívar</option>
-                        </select>
+                    <div class="field">
+                        <label for="hourInput">Hora de la caída</label>
+                        <input type="time" id="hourInput" name="hora" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="obsCaida">Observaciones (opcional)</label>
+                        <textarea id="obsCaida" name="observaciones" placeholder="Detalles adicionales…"></textarea>
                     </div>
 
                     <div class="form-info">
-                        <p>📅 Fecha: <span id="dateDisplay2"></span></p>
-                        <p>📍 Estado: Servicio Establecido</p>
+                        FECHA: <span id="dateDisplay"></span>
                     </div>
 
-                    <button type="submit" class="btn btn-success btn-submit">
-                        📤 Enviar Novedad
-                    </button>
+                    <div class="field-error" id="caidaError"></div>
+
+                    <button type="submit" class="btn btn-amber" id="caidaSubmitBtn">📤 Registrar Caída</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ============ MARCAR RESTABLECIMIENTO (solo lo del usuario) ============ -->
+        <div id="establecidoScreen" class="screen">
+            <div class="card">
+                <div class="screen-head">
+                    <button class="btn-back" id="backFromEstablecido">← Volver</button>
+                    <h2>Marcar Restablecimiento</h2>
+                </div>
+
+                <div id="misCaidasWrap">
+                    <div class="loading-inline">Consultando tus caídas activas…</div>
+                </div>
+
+                <form id="establecidoForm" style="display:none;">
+                    <div class="field">
+                        <label>Tus caídas activas</label>
+                        <div class="pdv-list" id="pdvListEstablecido"></div>
+                        <div class="selected-counter"><strong id="estSelCount">0</strong> caída(s) seleccionada(s)</div>
+                    </div>
+
+                    <div class="field">
+                        <label for="hourInput2">Hora de restablecimiento</label>
+                        <input type="time" id="hourInput2" name="hora" required>
+                    </div>
+
+                    <div class="field">
+                        <label for="obsEst">Observaciones (opcional)</label>
+                        <textarea id="obsEst" name="observaciones" placeholder="Detalles adicionales…"></textarea>
+                    </div>
+
+                    <div class="form-info">
+                        FECHA: <span id="dateDisplay2"></span>
+                    </div>
+
+                    <div class="field-error" id="establecidoError"></div>
+
+                    <button type="submit" class="btn btn-teal" id="establecidoSubmitBtn">📤 Registrar Restablecimiento</button>
                 </form>
             </div>
         </div>
@@ -118,7 +146,7 @@
                 <div class="modal-icon">✅</div>
                 <h3 id="modalTitle">Novedad Enviada</h3>
                 <p id="modalMessage">La novedad se ha registrado correctamente</p>
-                <button class="btn btn-primary" id="closeModal">Aceptar</button>
+                <button class="btn btn-navy" id="closeModal">Aceptar</button>
             </div>
         </div>
 
@@ -128,7 +156,7 @@
                 <div class="modal-icon">❌</div>
                 <h3>Error</h3>
                 <p id="errorMessage">Ha ocurrido un error al enviar la novedad</p>
-                <button class="btn btn-primary" id="closeErrorModal">Reintentar</button>
+                <button class="btn btn-navy" id="closeErrorModal">Cerrar</button>
             </div>
         </div>
     </div>
