@@ -1,6 +1,6 @@
 {
   "name": "novedad-asesor-remoto-proxy",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Backend proxy para reportar novedades de caídas en el servicio asesor remoto",
   "main": "server.js",
   "scripts": {
