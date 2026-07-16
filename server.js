@@ -78,6 +78,7 @@ const norm = (v) => String(v ?? '').trim().toUpperCase();
 // Esta función intenta cubrir todas esas variantes.
 function extractArray(json) {
     if (Array.isArray(json)) return json;
+    if (json && Array.isArray(json.result)) return json.result;
     if (json && Array.isArray(json.data)) return json.data;
     if (json && Array.isArray(json.results)) return json.results;
     if (json && Array.isArray(json.records)) return json.records;
