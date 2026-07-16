@@ -86,18 +86,29 @@ function extractArray(json) {
     return [];
 }
 
-async function getUsuarios() {
-    const resp = await fetch(USUARIOS_URL, { method: 'GET', headers: AUTH_HEADERS, timeout: 10000 });
-    if (!resp.ok) throw new Error(`Error ${resp.status} consultando usuarios`);
+async function getUsuarioPorCedula(cedula) {
+    const url = `${USUARIOS_URL}?CEDULA=${encodeURIComponent(cedula)}`;
+    const resp = await fetch(url, { method: 'GET', headers: AUTH_HEADERS, timeout: 10000 });
+    if (!resp.ok) {
+        const cuerpo = await resp.text().catch(() => '');
+        log('ERROR', `Respuesta cruda de usuarios (status ${resp.status}): ${cuerpo.slice(0, 500)}`);
+        throw new Error(`Error ${resp.status} consultando usuarios`);
+    }
     const json = await resp.json();
-    return extractArray(json);
+    const lista = extractArray(json);
+    return lista.find((u) => norm(u.CEDULA) === norm(cedula)) || null;
 }
 
-async function getNovedades() {
-    const resp = await fetch(NOVEDADES_URL, { method: 'GET', headers: AUTH_HEADERS, timeout: 10000 });
-    if (!resp.ok) throw new Error(`Error ${resp.status} consultando novedades`);
+async function getNovedadesPorCedula(cedula) {
+    const url = `${NOVEDADES_URL}?CEDULA=${encodeURIComponent(cedula)}`;
+    const resp = await fetch(url, { method: 'GET', headers: AUTH_HEADERS, timeout: 10000 });
+    if (!resp.ok) {
+        const cuerpo = await resp.text().catch(() => '');
+        log('ERROR', `Respuesta cruda de novedades (status ${resp.status}): ${cuerpo.slice(0, 500)}`);
+        throw new Error(`Error ${resp.status} consultando novedades`);
+    }
     const json = await resp.json();
-    return extractArray(json);
+    return extractArray(json).filter((n) => norm(n.CEDULA) === norm(cedula));
 }
 
 async function crearNovedad(registro) {
@@ -109,10 +120,6 @@ async function crearNovedad(registro) {
     });
     const data = await resp.json().catch(() => ({}));
     return { ok: resp.ok, status: resp.status, data };
-}
-
-function buscarUsuarioPorCedula(usuarios, cedula) {
-    return usuarios.find((u) => norm(u.CEDULA) === norm(cedula));
 }
 
 function puntosVentaDeUsuario(usuario) {
@@ -154,8 +161,7 @@ app.post('/api/login', async (req, res) => {
 
         log('INFO', `Intento de login con cédula ${cedula}`);
 
-        const usuarios = await getUsuarios();
-        const usuario = buscarUsuarioPorCedula(usuarios, cedula);
+        const usuario = await getUsuarioPorCedula(cedula);
 
         if (!usuario) {
             log('INFO', `Cédula ${cedula} NO registrada`);
@@ -200,8 +206,7 @@ app.post('/api/caida', async (req, res) => {
             return res.status(400).json({ exito: false, error: 'Faltan datos: cédula, hora y al menos un punto de venta.' });
         }
 
-        const usuarios = await getUsuarios();
-        const usuario = buscarUsuarioPorCedula(usuarios, cedula);
+        const usuario = await getUsuarioPorCedula(cedula);
 
         if (!usuario) {
             return res.status(403).json({ exito: false, error: 'Cédula no registrada. No se puede registrar la caída.' });
@@ -268,10 +273,10 @@ app.get('/api/mis-caidas/:cedula', async (req, res) => {
             return res.status(400).json({ exito: false, error: 'Cédula inválida.' });
         }
 
-        const novedades = await getNovedades();
+        const novedades = await getNovedadesPorCedula(cedula);
 
         const misCaidas = novedades
-            .filter((n) => norm(n.CEDULA) === norm(cedula) && norm(n.ESTADO) === 'CAIDA')
+            .filter((n) => norm(n.ESTADO) === 'CAIDA')
             .map((n) => ({
                 _id: n._id,
                 PUNTO_VENTA: n.PUNTO_VENTA,
@@ -300,12 +305,13 @@ app.post('/api/restablecimiento', async (req, res) => {
             return res.status(400).json({ exito: false, error: 'Faltan datos: cédula, hora y al menos una caída seleccionada.' });
         }
 
-        const novedades = await getNovedades();
+        const novedades = await getNovedadesPorCedula(cedula);
         const idsSet = new Set(ids.map(String));
 
-        // Solo se pueden restablecer caídas ABIERTAS y que pertenezcan a ESTA cédula (anti-manipulación)
+        // Solo se pueden restablecer caídas ABIERTAS y que pertenezcan a ESTA cédula (anti-manipulación,
+        // ya reforzado porque getNovedadesPorCedula solo trae registros de esta cédula)
         const propias = novedades.filter(
-            (n) => idsSet.has(String(n._id)) && norm(n.CEDULA) === norm(cedula) && norm(n.ESTADO) === 'CAIDA'
+            (n) => idsSet.has(String(n._id)) && norm(n.ESTADO) === 'CAIDA'
         );
 
         if (propias.length === 0) {
@@ -359,6 +365,7 @@ app.listen(PORT, () => {
     log('INFO', `Puerto: ${PORT}`);
     log('INFO', `Novedades: ${NOVEDADES_URL}`);
     log('INFO', `Usuarios: ${USUARIOS_URL}`);
+    log('INFO', `Token en uso: ${process.env.API_TOKEN ? 'desde variable de entorno API_TOKEN' : 'valor por defecto hardcodeado'} (${API_TOKEN.slice(0, 6)}...${API_TOKEN.slice(-4)})`);
 });
 
 process.on('uncaughtException', (error) => log('ERROR', `Excepción no capturada: ${error.message}`));
