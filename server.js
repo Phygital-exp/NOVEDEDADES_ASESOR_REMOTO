@@ -86,28 +86,57 @@ function extractArray(json) {
     return [];
 }
 
-async function getUsuarioPorCedula(cedula) {
-    const url = `${USUARIOS_URL}?CEDULA=${encodeURIComponent(cedula)}`;
-    const resp = await fetch(url, { method: 'GET', headers: AUTH_HEADERS, timeout: 10000 });
+async function fetchJson(url) {
+    const resp = await fetch(url, {
+        method: 'GET',
+        headers: {
+            ...AUTH_HEADERS,
+            'User-Agent': 'Mozilla/5.0 (compatible; NovedadesProxy/1.0)',
+            Accept: 'application/json'
+        },
+        timeout: 10000
+    });
     if (!resp.ok) {
         const cuerpo = await resp.text().catch(() => '');
-        log('ERROR', `Respuesta cruda de usuarios (status ${resp.status}): ${cuerpo.slice(0, 500)}`);
-        throw new Error(`Error ${resp.status} consultando usuarios`);
+        const err = new Error(`Error ${resp.status}`);
+        err.status = resp.status;
+        err.body = cuerpo;
+        throw err;
     }
-    const json = await resp.json();
+    return resp.json();
+}
+
+async function getUsuarioPorCedula(cedula) {
+    try {
+        const json = await fetchJson(`${USUARIOS_URL}?CEDULA=${encodeURIComponent(cedula)}`);
+        const lista = extractArray(json);
+        const encontrado = lista.find((u) => norm(u.CEDULA) === norm(cedula));
+        if (encontrado) return encontrado;
+        // Si el filtro no devolvió nada, confirmamos contra la tabla completa antes de decir "no existe"
+    } catch (error) {
+        log('WARN', `Falló consulta filtrada de usuarios (status ${error.status}): ${String(error.body || '').slice(0, 200)}. Reintentando sin filtro…`);
+    }
+
+    const json = await fetchJson(USUARIOS_URL).catch((error) => {
+        log('ERROR', `Respuesta cruda de usuarios (status ${error.status}): ${String(error.body || '').slice(0, 500)}`);
+        throw new Error(`Error ${error.status} consultando usuarios`);
+    });
     const lista = extractArray(json);
     return lista.find((u) => norm(u.CEDULA) === norm(cedula)) || null;
 }
 
 async function getNovedadesPorCedula(cedula) {
-    const url = `${NOVEDADES_URL}?CEDULA=${encodeURIComponent(cedula)}`;
-    const resp = await fetch(url, { method: 'GET', headers: AUTH_HEADERS, timeout: 10000 });
-    if (!resp.ok) {
-        const cuerpo = await resp.text().catch(() => '');
-        log('ERROR', `Respuesta cruda de novedades (status ${resp.status}): ${cuerpo.slice(0, 500)}`);
-        throw new Error(`Error ${resp.status} consultando novedades`);
+    try {
+        const json = await fetchJson(`${NOVEDADES_URL}?CEDULA=${encodeURIComponent(cedula)}`);
+        return extractArray(json).filter((n) => norm(n.CEDULA) === norm(cedula));
+    } catch (error) {
+        log('WARN', `Falló consulta filtrada de novedades (status ${error.status}): ${String(error.body || '').slice(0, 200)}. Reintentando sin filtro…`);
     }
-    const json = await resp.json();
+
+    const json = await fetchJson(NOVEDADES_URL).catch((error) => {
+        log('ERROR', `Respuesta cruda de novedades (status ${error.status}): ${String(error.body || '').slice(0, 500)}`);
+        throw new Error(`Error ${error.status} consultando novedades`);
+    });
     return extractArray(json).filter((n) => norm(n.CEDULA) === norm(cedula));
 }
 
