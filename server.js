@@ -32,7 +32,6 @@ const AUTH_HEADERS = {
 // ============================================================
 const PUNTOS_VENTA = [
     // ---- COLGATE ----
-    { nombre: 'Llano Grande Palmira', pais: 'COLOMBIA', cuenta: 'COLGATE' },
     { nombre: 'AvenidaDelRio', pais: 'COLOMBIA', cuenta: 'COLGATE' },
     { nombre: 'Batan UIO', pais: 'ECUADOR', cuenta: 'COLGATE' },
     { nombre: 'CentroMayor', pais: 'COLOMBIA', cuenta: 'COLGATE' },
@@ -53,6 +52,8 @@ const PUNTOS_VENTA = [
     { nombre: 'CCI', pais: 'ECUADOR', cuenta: 'COLGATE' },
     { nombre: 'Granada', pais: 'COLOMBIA', cuenta: 'COLGATE' },
     { nombre: 'GYE Piazza', pais: 'ECUADOR', cuenta: 'COLGATE' },
+    { nombre: 'ChiaVariante', pais: 'COLOMBIA', cuenta: 'COLGATE' },
+    { nombre: 'BarranquillaPlaza', pais: 'COLOMBIA', cuenta: 'COLGATE' },
 
     // ---- EXITO ----
     { nombre: 'Llano Grande Palmira', pais: 'COLOMBIA', cuenta: 'EXITO' },
@@ -187,6 +188,7 @@ app.post('/api/login', async (req, res) => {
         const puntos = puntosVentaDeUsuario(usuario);
 
         log('INFO', `Cédula ${cedula} válida. Usuario: ${usuario.NOMBRE || usuario.CIUDAD}, Cuenta: ${usuario.CUENTA}, País: ${usuario.PAIS}`);
+        log('INFO', `Filtro aplicado -> PAIS="${norm(usuario.PAIS)}" CUENTA="${norm(usuario.CUENTA)}" => ${puntos.length} punto(s): ${puntos.join(', ')}`);
 
         return res.json({
             exito: true,
